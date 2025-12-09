@@ -157,7 +157,7 @@ export class QuickHUD {
 	private hasDragged: boolean;
 	private draggable: boolean;
 
-	constructor(title = "QuickHUD", position = "top-right") {
+	constructor(title = "QuickHUD", position: "top-right" | "bottom-right" | "top-left" | "bottom-left" = "top-right") {
 		this.toggleEl = createElement("span").withClass("qh-toggle").withText("▼").ok();
 
 		this.header = createElement("div")
@@ -193,7 +193,7 @@ export class QuickHUD {
 		this.toggleEl.style.transform = this.isOpen ? "rotate(0deg)" : "rotate(-90deg)";
 	}
 
-	initDragAndToggle() {
+	private initDragAndToggle() {
 		let startX: number, startY: number;
 		let initialLeft: number, initialTop: number;
 		const THRESHOLD = 5;
@@ -246,7 +246,7 @@ export class QuickHUD {
 		});
 	}
 
-	setDraggable(enabled: boolean) {
+	setDraggable(enabled: boolean): QuickHUD {
 		this.draggable = enabled;
 		this.header.style.cursor = enabled ? "grab" : "default";
 
@@ -259,7 +259,7 @@ export class QuickHUD {
 		return this;
 	}
 
-	createRow(parent: HTMLElement, children: HTMLElement[]) {
+	private createRow(parent: HTMLElement, children: HTMLElement[]) {
 		return createElement("div")
 			.withClass("qh-row")
 			.appendChildren(children)
@@ -272,7 +272,7 @@ export class QuickHUD {
 		min: number, max: number,
 		value: number, step: number,
 		callback: (value: number) => void,
-		parent: HTMLElement = this.content) {
+		parent: HTMLElement = this.content): QuickHUD {
 		const valLabel = createElement("span")
 			.withText(String(value))
 			.withId(`val-${label}`)
@@ -308,7 +308,7 @@ export class QuickHUD {
 		label: string,
 		options: string[] | { string: string }, selectedValue: string,
 		callback: (value: string) => void,
-		parent: HTMLElement = this.content) {
+		parent: HTMLElement = this.content): QuickHUD {
 		const labelRow = createElement("div")
 			.withClass("qh-label-row")
 			.withText(label)
@@ -357,6 +357,21 @@ export class QuickHUD {
 		btn.addEventListener("click", callback);
 	}
 
+	addLabel(label: string, parent: HTMLElement = this.content): (label: string) => void {
+		const labelEl = createElement("span")
+			.withText(label)
+		  .ok();
+
+		const labelRow = createElement("div")
+			.withClass("qh-label-row")
+			.appendChild(labelEl)
+			.ok();
+
+		this.createRow(parent, [labelRow]);
+
+		return (label: string) => labelEl.innerText = label;
+	}
+
 	addFolder(title: string) {
 		const header = createElement("div")
 			.withText(title)
@@ -379,6 +394,11 @@ export class QuickHUD {
 		return this.folderResult(this, content);
 	}
 
+	addLabeledValue(label: string, value: any, parent: HTMLElement = this.content): (value: any) => void {
+		const setLabel = this.addLabel(`${label}: ${String(value)}`, parent);
+		return (value: any) => setLabel(`${label}: ${String(value)}`)
+	}
+
 	folderResult(parent: QuickHUD, content: HTMLElement) {
 		return {
 			addRange: (l: string, min: number, max: number, v: number, s: number, cb: (value: number) => void) => { this.addRange(l, min, max, v, s, cb, content); return this.folderResult(parent, content) },
@@ -388,3 +408,4 @@ export class QuickHUD {
 		}
 	}
 }
+
